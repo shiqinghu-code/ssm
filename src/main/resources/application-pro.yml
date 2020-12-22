@@ -1,0 +1,38 @@
+mybatis:
+  config-location: classpath:mybatis/mybatis.cfg.xml        # mybatis配置文件所在路径
+  type-aliases-package: cn.cmcc.es.bid.entities     # 所有Entity别名类所在包
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+
+spring:
+  application:
+    name: microservicecloud-dept
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://120.24.153.253:3306/es-sup?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&autoReconnect=true&zeroDateTimeBehavior=CONVERT_TO_NULL&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true
+    username: wshh
+    password: wshh123456
+    dbcp2:
+      min-idle: 20                                           # 数据库连接池的最小维持连接数
+      initial-size: 20                                       # 初始化连接数
+      max-total: 40                                          # 最大连接数
+      max-wait-millis: 60000                                  # 等待连接获取的最大超时时间
+#eureka:
+#  client: #客户端注册进eureka服务列表内
+#    service-url:
+#      #      defaultZone: http://localhost:7001/eureka
+#      defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/
+#  instance:
+#    instance-id: springcloud-dept:8001
+#    prefer-ip-address: true    #访问路径可以显示IP地址
+#info:
+#  app.name: scg-SpringCloud
+#  company.name: www.scg.com
+#  build.artifactId: $project.artifactId$
+#  build.version: $project.version$
+
+server:
+  port: 33333
+
+winProportionStart: 99
+winProportionEnd: 99
