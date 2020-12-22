@@ -8,9 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;import org.springf
 
 @Service
 public class EctCnAfterReportService  extends BaseService<EctCnAfterReport, String, Object> implements IEctCnAfterReportService {
-@Autowired 
- private EctCnAfterReportMapper ectCnAfterReportMapper; 
-// 重写BaseServiceImpl抽象方法，将当前Mapper返回 
-@Override 
-protected BaseMapper<EctCnAfterReport> getBaseMapper() { return ectCnAfterReportMapper; } 
+   @Autowired 
+    private EctCnAfterReportMapper ectCnAfterReportMapper; 
+   // 重写BaseServiceImpl抽象方法，将当前Mapper返回 
+    @Override 
+    protected BaseMapper<EctCnAfterReport> getBaseMapper() { return ectCnAfterReportMapper; } 
+
 }

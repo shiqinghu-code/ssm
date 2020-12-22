@@ -284,14 +284,12 @@ public class jpa {
                 "\n" +
                 "@Service\n" +
                 "public class " + className + "Service  extends BaseService<" + className + ", String, Object> implements I" + className + "Service {\n" +
-               
-				    "@Autowired \n"+
-				   " private " + className + "Mapper " + toLowerCaseFirstOne(className) + "Mapper; \n"+
-				
-					"// 重写BaseServiceImpl抽象方法，将当前Mapper返回 \n" +
-				    "@Override \n"+
-				    "protected BaseMapper<" + className + "> getBaseMapper() { return " + toLowerCaseFirstOne(className) + "Mapper; } \n"+
-				        		
+				"    @Autowired \n"+
+				"    private " + className + "Mapper " + toLowerCaseFirstOne(className) + "Mapper; \n"+
+				"    // 重写BaseServiceImpl抽象方法，将当前Mapper返回 \n" +
+				"    @Override \n"+
+				"    protected BaseMapper<" + className + "> getBaseMapper() { return " + toLowerCaseFirstOne(className) + "Mapper; } \n"+
+				"\n" +
         		"}");
         File file = new File("src\\main\\java\\com\\qing\\hu\\service\\impl\\" + className + "Service.java");
         if (file.exists())

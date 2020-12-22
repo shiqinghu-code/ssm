@@ -1,0 +1,441 @@
+mybatis:
+  config-location: classpath:mybatis/mybatis.cfg.xml        # mybatis配置文件所在路径
+  type-aliases-package: cn.cmcc.es.bid.entities     # 所有Entity别名类所在包
+  mapper-locations: classpath:mybatis/mapper/**/*.xml
+
+spring:
+  application:
+    name: microservicecloud-dept
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://120.24.153.253:3306/es-sup?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&autoReconnect=true&zeroDateTimeBehavior=CONVERT_TO_NULL&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true
+    username: wshh
+    password: wshh123456
+    dbcp2:
+      min-idle: 20                                           # 数据库连接池的最小维持连接数
+      initial-size: 20                                       # 初始化连接数
+      max-total: 40                                          # 最大连接数
+      max-wait-millis: 60000                                  # 等待连接获取的最大超时时间
+  jpa:
+    show-sql: true
+    hibernate:
+          ddl-auto: update
+#eureka:
+#  client: #客户端注册进eureka服务列表内
+#    service-url:
+#      #      defaultZone: http://localhost:7001/eureka
+#      defaultZone: http://eureka7001.com:7001/eureka/,http://eureka7002.com:7002/eureka/
+#  instance:
+#    instance-id: springcloud-dept:8001
+#    prefer-ip-address: true    #访问路径可以显示IP地址
+#info:
+#  app.name: scg-SpringCloud
+#  company.name: www.scg.com
+#  build.artifactId: $project.artifactId$
+#  build.version: $project.version$
+server:
+  port: 8763
+  
+winProportionStart: 99
+winProportionEnd: 99
+
+
+
+
+  #本地开发环境配置
+
+#eureka:
+#  client:
+#    register-with-eureka: true #注册到Eureka的注册中心
+#    fetch-registry: true #获取注册实例列表
+#    service-url:
+#      defaultZone: http://localhost:8001/eureka/ #配置注册中心地址
+
+spring:
+  jmx: 
+    default-domain: es-integration  
+  application:
+    name: es-integration
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  mvc:
+    dateFormat: yyyy-MM-dd HH:mm:ss
+  servlet: 
+    multipart: 
+      max-file-size: 10MB
+      max-request-size: 100MB
+  freemarker: 
+    template-loader-path: classpath:/templates
+    suffix: .html
+    cache: false
+    charset: UTF-8
+    check-template-location: true
+    content-type: text/html
+    expose-request-attributes: true
+    expose-session-attributes: true
+    request-context-attribute: request
+  redis:  
+    #数据库索引
+    database: 2
+    host: localhost
+    port: 6379
+    #password: admin
+    lettuce:
+      pool:
+        #最大连接数
+        max-active: 8
+        #最大阻塞等待时间(负数表示没限制)
+        max-wait: -1
+        #最大空闲
+        max-idle: 8
+        #最小空闲
+        min-idle: 1
+    #连接超时时间
+    timeout: 10000  
+         
+  datasource:
+    #多数据源配置(例子，不需要可以删掉，清除com.hyf.config.druid对应的配置即可)
+    master: 
+      jdbc-url: jdbc:mysql://120.24.153.253:3306/es_dev?allowMultiQueries=true&characterEncoding=UTF-8&serverTimezone=Hongkong&useSSL=false
+      username: root
+      password: Hfy0914!@!@
+      # 使用druid数据源
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      log-slow-sql: true
+      filters: stat,wall,slf4j
+    slave: 
+      jdbc-url: jdbc:mysql://120.24.153.253:3306/es_dev?allowMultiQueries=true&characterEncoding=UTF-8&serverTimezone=Hongkong&useSSL=false
+      username: root
+      password: Hfy0914!@!@
+      # 使用druid数据源
+      type: com.alibaba.druid.pool.DruidDataSource
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      log-slow-sql: true
+      filters: stat,wall,slf4j
+
+server:
+  port: 8889
+  http:
+    encoding:
+      charset: UTF-8
+  cache:
+      ehcache:
+        config: classpath:ehcache.xml
+      
+#pagehelper分页插件
+pagehelper:
+    helperDialect: mysql
+    reasonable: true
+    supportMethodsArguments: true
+    params: count=countSql
+    
+logging:
+  config: classpath:logback.xml
+ 
+  
+  
+  package cn.cmcc.es.chinapowerit.calibration.sure.mapper;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+
+import cn.cmcc.es.chinapowerit.api.model.bid.EctCnPackage;
+import cn.cmcc.es.chinapowerit.api.model.bid.SptSuppSupplier;
+import cn.cmcc.es.chinapowerit.calibration.resultgs.pojo.EctCnWinObjPac;
+import cn.cmcc.es.chinapowerit.calibration.sure.pojo.ECTCNSuppWin;
+import cn.cmcc.es.chinapowerit.calibration.tzs.pojo.ECTCNWinArticle;
+import cn.cmcc.es.chinapowerit.calibration.winservice.pojo.ECTCNWinServiceSuppVoucher;
+@org.apache.ibatis.annotations.Mapper
+public interface SureMySqlMapper {
+	List<ECTCNSuppWin> listECTCNSuppWin(String packageId,Integer numberTurn );
+	
+	List<SptSuppSupplier> getAllOkSupps1(String supplierName,String companyType);
+	
+	List<SptSuppSupplier> getAllOkSupps2(String supplierName,String companyType);
+	/**
+	 * 传入sql 获取 List<LinkedHashMap<String, Object>>
+	 * @param sql
+	 * @return
+	 */
+	List<LinkedHashMap<String, Object>> superManagerSelect(String sql);
+	/**
+	 * 根据项目id，获取没有填写中标信息的包
+	 * @param projectId
+	 * @return
+	 */
+	@Select(" select t.package_id,     t.package_name,    t.project_id,    t.object_id,     t.object_name " + 
+			" from ect_cn_package t " + 
+			" where t.del_flg = '0'   and t.is_fail = 'N'   and t.is_open_bid = 'Y'   " +
+			" and t.project_id = #{projectId} " + 
+			" and not exists (select *   from ect_cn_win t2    where t2.package_id = t.package_id      and t2.del_flg = '0') "  )
+	List<EctCnPackage> getNoWinSuppPackage(  String projectId);
+	/**
+	 * 获取中标标包和供应商名称
+	 * @param projectId
+	 * @param numberTurn
+	 * @return
+	 */
+	@Select(" select distinct l.obj_pac_name, l.supplier_name " + 
+			"  from (select case " + 
+			"                 when r.object_name is null then " + 
+			"                  r.package_name " + 
+			"                 else " + 
+			"                  r.object_name || '/' || r.package_name " + 
+			"               end as obj_pac_name, " + 
+			"               r.supplier_name, " + 
+			"               t.candidate_sort, " + 
+			"               o.object_order, " + 
+			"               p.package_sort " + 
+			"          from ect_cn_win r " + 
+			"          left join ect_cn_supp_reply t " + 
+			"            on r.package_id = t.package_id " + 
+			"           and r.supplier_id = t.supplier_id " + 
+			"          left join ect_cn_object o " + 
+			"            on r.object_id = o.object_id " + 
+			"          left join ect_cn_package p " + 
+			"            on r.package_id = p.package_id " + 
+			"         where r.project_id = #{projectId} " + 
+			"           and r.del_flg = '0' " + 
+			"           and t.number_turn = #{numberTurn} " + 
+			"         order by o.object_order, p.package_sort, t.candidate_sort) l " + 
+			" order by l.object_order, l.package_sort, l.candidate_sort ")
+	List<EctCnWinObjPac> getEctCnWinObjPac(String projectId,Integer numberTurn);
+	/**
+	 * 获取中标供应商列表
+	 * @param projectId
+	 * @param packageId
+	 * @return
+	 */
+	   @Select("<script>      " +
+	   		"select distinct a.project_Id, " + 
+	   		"                     a.package_Name, " + 
+	   		"                     a.supplier_Name, " + 
+	   		"                     b.ADUIT_STATUS, " + 
+	   		"                     b.pub_time, " + 
+	   		"                     a.supplier_id, " + 
+	   		"                     b.column_code, " + 
+	   		"                     a.object_name, " + 
+	   		"                     a.object_id, " + 
+	   		"                     a.package_id, " + 
+			" 	a.win_money,a.win_proportion, a.work_area "+
+	   		"       from (select t1.* " + 
+	   		"               from ECT_CN_WIN t1, ect_cn_package t2 " + 
+	   		"              where t1.package_id = t2.package_id " + 
+	   		"                and t2.is_fail = 'N') a " + 
+	   		"       left join CMS_ARTICLE b " + 
+	   		"         on a.package_Id = b.package_Id " + 
+	   		"        and a.supplier_Id = b.supplier_Id " + 
+	   		"        and b.column_code = 'ZBTZ' " + 
+	   		"      where a.del_flg = '0' " + 
+	   		" <if test='projectId != null and projectId != &apos;&apos; '>" +
+	   		"        and a.project_Id = #{projectId} " + 
+	   		" </if>" +
+	   		" <if test='packageId != null and packageId != &apos;&apos;  '>" +
+	   		"        and a.package_Id = #{packageId} " + 
+   			" </if>" +
+	   		"      order by a.supplier_Name " +
+	   		"</script>")
+	List<ECTCNWinArticle> getResultWinList(String projectId, String packageId);
+	   /**
+		 * 获取未中标供应商列表
+		 * @param projectId
+		 * @param packageId
+		 * @return
+		 */
+	   @Select("<script>            " + 
+	   		"      select a.project_id, " + 
+	   		"             a.package_id, " + 
+	   		"             a.supplier_id, " + 
+	   		"             a.package_name, " + 
+	   		"             a.supplier_name, " + 
+	   		"             t4.aduit_status, " + 
+	   		"             t4.pub_time, " + 
+	   		"             t4.column_code, " + 
+	   		"             a.object_name " + 
+	   		"        from (select t.project_id, " + 
+	   		"                     t.package_id, " + 
+	   		"                     t.supplier_id, " + 
+	   		"                     t.package_name, " + 
+	   		"                     t.supplier_name, " + 
+	   		"                     t.object_name " + 
+	   		"                from ect_cn_supp_reply t " + 
+	   		"               where t.del_flg = '0' " + 
+	   		"                 and t.number_turn = " + 
+	   		"                     (select t3.number_turn " + 
+	   		"                        from ect_cn_project_main t3 " + 
+	   		"                       where t3.project_id = t.project_id) " + 
+			" <if test='projectId != null and projectId != &apos;&apos;  '>" +
+			"        and t.project_Id = #{projectId} " + 
+			" </if>" +
+			" <if test='packageId != null and packageId != &apos;&apos;  '>" +
+			"        and t.package_Id = #{packageId} " + 
+			" </if>" +
+	   		"                 and t.reply_status ='REPLY' " + 
+	   		"                 and t.is_open_bid = 'Y' " + 
+	   		"                 and t.supplier_id not in " + 
+	   		"                     (select t2.supplier_id " + 
+	   		"                        from ect_cn_supp_reply t2 " + 
+	   		"                       where t2.project_id = t.project_id " + 
+	   		"                         and t2.package_id = t.package_id " + 
+	   		"                         and t2.is_win = 'Y' " + 
+	   		"                         and t2.number_turn = " + 
+	   		"                             (select t3.number_turn " + 
+	   		"                                from ect_cn_project_main t3 " + 
+	   		"                               where t3.project_id = t2.project_id))) a " + 
+	   		"        left join cms_article t4 " + 
+	   		"          on t4.package_id = a.package_id " + 
+	   		"         and t4.supplier_id = a.supplier_id " + 
+	   		"         and t4.column_code = 'ZBJGTZ' " + 
+	   		"         and t4.del_flg = 'Y' " + 
+	   		"       order by a.supplier_Name " + 
+	   		" </script>")
+	List<ECTCNWinArticle> getNoWinList(String projectId, String packageId);
+	  /**
+	   * 批量更新CmsArticle 的AduitStatus
+	   * @param projectId
+	   * @param columnCode
+	   * @param auditStatus
+	   * @return
+	   */
+	   @Update("<script> " +
+		   		 "update cms_article set ADUIT_STATUS =#{auditStatus} where PROJECT_ID=#{projectId} and COLUMN_CODE in   " +
+		   		 " <foreach collection='columnCodes' item='columnCode' index='index' open='('  separator=',' close=')' >" +
+		   		 	" #{columnCode}" +
+	            " </foreach>" +
+	            " <if test='againStatus != null and againStatus == &apos;again&apos;    '>" +
+				"        and  is_again = 'Y' " + 
+				" </if>" +
+		   		 " </script>" )
+	int updateCmsArticleAduitStatus(String projectId, String[] columnCodes, String auditStatus,String againStatus);
+	 /**
+	   * 批量更新CmsStruParam 的AduitStatus
+	   * @param projectId
+	   * @param columnCode
+	   * @param auditStatus
+	   * @return
+	   */
+	   @Update("<script> " +
+		   		 "update Cms_Stru_Param set audit_status =#{auditStatus} where PROJECT_ID=#{projectId} and template_Type in   " +
+		   		 " <foreach collection='templateTypes' item='templateType' index='index' open='('  separator=',' close=')' >" +
+		   		 	" #{templateType}" +
+	            " </foreach>" +
+	            " <if test='againStatus != null and againStatus == &apos;again&apos;  '>" +
+				"        and  is_again = 'Y' " + 
+				" </if>" +
+		   		 " </script>" )
+	int updateCmsStruParamAuditStatus(String projectId, String[] templateTypes, String auditStatus,String againStatus);
+	/**
+	 * 获取中标服务费 供应商列表
+	 * @param projectId
+	 * @return
+	 */
+	   @Select("     select s.service_id, "+
+				"    s.service_money, "+
+				"    s.service_info, "+
+				"     s.project_id, "+
+				"     s.project_name, "+
+				"     s.pxy_name, "+
+				"     s.manager_name, "+
+				"     s.manager_tel, "+
+				"     s.manager_mailbox, "+
+				"      v.voucher_id, "+
+				"    v.upload_supp_name, "+
+				"     v.upload_supp_tel, "+
+				"    w1.supplier_id, "+
+				"    w1.supplier_name, "+
+				"    s.project_code, "+
+				"     v.submit_state, "+
+				"    v.submit_time "+
+				"    from (select distinct w.supplier_id, w.supplier_name from ect_cn_win w where w.project_id =#{projectId} and w.DEL_FLG='0'  ) w1 "+
+				"   left join ( select * from ect_cn_win_service s  where s.project_id=#{projectId} and s.DEL_FLG='0'  ) s "+
+				"    on w1.supplier_id = s.supplier_id "+
+				"    left join ect_cn_supp_voucher v "+
+				"    on s.service_id = v.service_id  and v.DEL_FLG='0' "+
+				"    order by w1.supplier_id ")
+	List<ECTCNWinServiceSuppVoucher> getWinSuppContent(String projectId);
+	   /**
+	    * 中标服务费列表
+	    * @param projectId
+	    * @return
+	    */
+	   @Select("   select s.service_id, "+
+				"   s.service_money, "+
+				"   s.service_info, "+
+				"   s.project_id, "+
+				"   s.project_name, "+
+				"   s.pxy_name, "+
+				"   s.manager_name, "+
+				"   s.manager_tel, "+
+				"   s.manager_mailbox, "+
+				"   v.voucher_id, "+
+				"   v.upload_supp_name, "+
+				"   v.upload_supp_tel, "+
+				"   v.supplier_id, "+
+				"   v.supplier_name, "+
+				"   s.project_code,"+
+				"    v.submit_state, "+
+				"    v.submit_time "+
+				"   from  ect_cn_win_service s "+
+				"    join  ect_cn_supp_voucher v "+
+				"   on s.service_id = v.service_id "+
+				"   where s.project_id = #{projectId} " +
+				"   and v.submit_state = 'YES' " +
+				"   order by s.service_id,v.voucher_id ")
+	List<ECTCNWinServiceSuppVoucher> forWinServiceSuppVoucherContent(String projectId);
+	   /**
+		 * 获取 ECTCNWinServiceSuppVoucher
+		 * @param projectId
+		 * @param serviceId
+		 * @param voucherId
+		 * @return
+		 */
+	   @Select("<script> " +
+			   "   select s.service_id, "+
+				"   s.service_money, "+
+				"   s.service_info, "+
+				"   s.project_id, "+
+				"   s.project_name, "+
+				"   s.pxy_name, "+
+				"   s.manager_name, "+
+				"   s.manager_tel, "+
+				"   s.manager_mailbox, "+
+				"   v.voucher_id, "+
+				"   v.upload_supp_name, "+
+				"   v.upload_supp_tel, "+
+				"   v.supplier_id, "+
+				"   v.supplier_name, "+
+				"   s.project_code"+
+				"   from  ect_cn_win_service s "+
+				"   left join  ect_cn_supp_voucher v "+
+				"   on s.service_id = v.service_id "+
+				"   where s.project_id = #{projectId} " +
+				"   and s.service_id = #{serviceId} " +
+			 	" <if test='voucherId != null and voucherId != &apos;&apos;  '>" +
+				"       and v.voucher_id = #{voucherId} " + 
+				" </if>" +
+		 		"   order by s.service_id,v.voucher_id "+
+			   " </script>" )
+	ECTCNWinServiceSuppVoucher getVByPidAndSidAndVid(String projectId, String serviceId, String voucherId);
+	   /**
+	    * 获得项目下确认出席的专家人数
+	    * @param projectId
+	    * @return
+	    */
+	 @Select("select count(id_Number) " + 
+	 		"  from ept_extraction_name_list t " + 
+	 		" where t.del_flg = '0' " + 
+	 		"   and t.bid_project_id = #{projectId}  " + 
+	 		"   and t.to_attend = 'EPT_ATTEND_TO_ATTEND' "  )
+	String getAttendedNum(String projectId);
+	
+}
+  
+  
+  
+  

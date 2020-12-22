@@ -8,9 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;import org.springf
 
 @Service
 public class EctCnAccountPowerLogService  extends BaseService<EctCnAccountPowerLog, String, Object> implements IEctCnAccountPowerLogService {
-@Autowired 
- private EctCnAccountPowerLogMapper ectCnAccountPowerLogMapper; 
-// 重写BaseServiceImpl抽象方法，将当前Mapper返回 
-@Override 
-protected BaseMapper<EctCnAccountPowerLog> getBaseMapper() { return ectCnAccountPowerLogMapper; } 
+   @Autowired 
+    private EctCnAccountPowerLogMapper ectCnAccountPowerLogMapper; 
+   // 重写BaseServiceImpl抽象方法，将当前Mapper返回 
+    @Override 
+    protected BaseMapper<EctCnAccountPowerLog> getBaseMapper() { return ectCnAccountPowerLogMapper; } 
+
 }

@@ -1,5 +1,10 @@
 package com.qing.hu.service.base;
 
+import com.github.pagehelper.PageInfo;
+import com.qing.hu.entity.EctCnSysLog;
+
+import tk.mybatis.mapper.entity.Example;
+
 /**
  * @Description: 服务层基类
  */
@@ -88,5 +93,13 @@ public interface IBaseService<T, ID, EXAMPLE> {
 	 * @return
 	 */
 	int updateByPrimaryKeySelective(T record);
+	/**
+	 * 获取分页数据
+	 * @param example
+	 * @param pageNum
+	 * @param pageSize
+	 * @return
+	 */
+	PageInfo<T> getPageList(Example example, int pageNum, int pageSize);
 
 }

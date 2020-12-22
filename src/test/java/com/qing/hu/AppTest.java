@@ -1,38 +1,37 @@
 package com.qing.hu;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Unit test for simple App.
- */
-public class AppTest 
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public AppTest( String testName )
-    {
-        super( testName );
-    }
+import javax.annotation.Resource;
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
-    }
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
-    }
+import com.qing.hu.entity.EctCnAccountPowerLog;
+import com.qing.hu.service.IEctCnAccountPowerLogService;
+
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {App.class})
+public class AppTest{ 
+	@Resource
+	IEctCnAccountPowerLogService ectCnAccountPowerLogService;
+	
+	
+	 @Test
+	 public  void testApp() { 
+
+ 
+		 for(int i =0 ; i<10;i++) {
+			 EctCnAccountPowerLog log=new EctCnAccountPowerLog();
+			 log.setLogId("a"+i);
+			 ectCnAccountPowerLogService.save(log);
+		 }
+		
+		 
+		 
+	 }
 }
