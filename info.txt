@@ -23,3 +23,28 @@ TK Mybaits
 
 
 
+???
+全局异常处理
+日志kafka
+模拟postman调用接口
+docker部署
+
+
+https://blog.csdn.net/ming19951224/article/details/106173840
+mybatis-plus
+
+拦截器与过滤器 AOP
+
+设计模式 https://www.cnblogs.com/bhlsheji/p/4581464.html
+
+Spring的两大特征（IOC和AOP）
+
+
+
+
+
+
+
+
+
+

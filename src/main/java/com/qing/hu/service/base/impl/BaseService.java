@@ -29,6 +29,9 @@ public abstract class BaseService<T extends BaseEntity , ID, EXAMPLE> implements
 	    
 		// 定义抽象方法getBaseMapper获取当前实体Mapper对象
 	    protected abstract BaseMapper<T> getBaseMapper();
+		
+		// @Autowired  //这种方式注入mapper也可以
+		//protected BaseMapper<T> mapper;
 
 	   
 	    @Transactional(rollbackOn = Exception.class)
