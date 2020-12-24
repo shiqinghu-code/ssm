@@ -147,7 +147,6 @@ public class jpa {
         data.append("package com.qing.hu.mapper;\n" +
                 "\n" +
                 "import com.qing.hu.entity." + className + ";\n" +
-                "import org.springframework.data.jpa.repository.JpaRepository;\n" +
                 "import com.qing.hu.mapper.base.BaseMapper;\n" +
                 "\n" +
                 "@org.apache.ibatis.annotations.Mapper\n" +

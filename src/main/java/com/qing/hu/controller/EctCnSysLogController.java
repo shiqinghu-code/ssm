@@ -12,7 +12,8 @@ import com.qing.hu.manager.IEctCnSysLogManager;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @RestController
 @RequestMapping("/ectCnSysLogController")
 public class EctCnSysLogController {
@@ -24,6 +25,7 @@ public class EctCnSysLogController {
 	    @ApiImplicitParam(name = "id",value = "日志id",required = true,dataType = "String")
 	    @GetMapping("/seeLog")
 	 	public Result  seeLog(String id) {
+	 		log.info("************************************************日志列表************************************************************");
 	 		return ectCnSysLogManager.seeLog(id);
 	 	}
 	 	@ApiOperation("日志列表分页")

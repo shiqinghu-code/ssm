@@ -1,20 +1,37 @@
+/*
+ * Hibernate, Relational Persistence for Idiomatic Java
+ *
+ * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
+ * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+ */
+
+// $Id$
+
 package org.hibernate.cfg;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import javax.persistence.Access;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
+
 import org.hibernate.AnnotationException;
-import org.hibernate.annotations.Any;
+import org.hibernate.MappingException;
 import org.hibernate.annotations.ManyToAny;
 import org.hibernate.annotations.Target;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.common.reflection.XClass;
 import org.hibernate.annotations.common.reflection.XProperty;
-import org.hibernate.boot.MappingException;
 import org.hibernate.boot.jaxb.Origin;
 import org.hibernate.boot.jaxb.SourceType;
 import org.hibernate.cfg.annotations.HCANNHelper;
@@ -23,211 +40,365 @@ import org.hibernate.internal.util.StringHelper;
 import org.jboss.logging.Logger;
 
 /**
- * 解决SpringDataJpa实体类中属性顺序与数据库中生成字段顺序不一致的问题 */
+ * A helper class to keep the {@code XProperty}s of a class ordered by access type.
+ *
+ * @author Hardy Ferentschik
+ */
 class PropertyContainer {
-    private static final CoreMessageLogger LOG = (CoreMessageLogger)Logger.getMessageLogger(CoreMessageLogger.class, PropertyContainer.class.getName());
-    private final XClass xClass;
-    private final XClass entityAtStake;
-    private final AccessType classLevelAccessType;
-    private final LinkedHashMap<String, XProperty> persistentAttributeMap;
+//
+//    static {
+//        System.setProperty("jboss.i18n.generate-proxies", "true");
+//    }
 
-    PropertyContainer(XClass clazz, XClass entityAtStake, AccessType defaultClassLevelAccessType) {
-        this.xClass = clazz;
-        this.entityAtStake = entityAtStake;
-        if (defaultClassLevelAccessType == AccessType.DEFAULT) {
-            defaultClassLevelAccessType = AccessType.PROPERTY;
-        }
+	private static final CoreMessageLogger LOG = Logger.getMessageLogger(CoreMessageLogger.class, PropertyContainer.class.getName());
 
-        AccessType localClassLevelAccessType = this.determineLocalClassDefinedAccessStrategy();
+	/**
+	 * The class for which this container is created.
+	 */
+	private final XClass xClass;
+	private final XClass entityAtStake;
 
-        assert localClassLevelAccessType != null;
+	/**
+	 * Holds the AccessType indicated for use at the class/container-level for cases where persistent attribute
+	 * did not specify.
+	 */
+	private final AccessType classLevelAccessType;
 
-        this.classLevelAccessType = localClassLevelAccessType != AccessType.DEFAULT ? localClassLevelAccessType : defaultClassLevelAccessType;
+	private final LinkedHashMap<String, XProperty> persistentAttributeMap;
 
-        assert this.classLevelAccessType == AccessType.FIELD || this.classLevelAccessType == AccessType.PROPERTY;
+	PropertyContainer(XClass clazz, XClass entityAtStake, AccessType defaultClassLevelAccessType) {
+		this.xClass = clazz;
+		this.entityAtStake = entityAtStake;
 
-        this.persistentAttributeMap = new LinkedHashMap<>();
-        List<XProperty> fields = this.xClass.getDeclaredProperties(AccessType.FIELD.getType());
-        List<XProperty> getters = this.xClass.getDeclaredProperties(AccessType.PROPERTY.getType());
-        this.preFilter(fields, getters);
-        Map<String, XProperty> persistentAttributesFromGetters = new HashMap();
-        this.collectPersistentAttributesUsingLocalAccessType(this.persistentAttributeMap, persistentAttributesFromGetters, fields, getters);
-        this.collectPersistentAttributesUsingClassLevelAccessType(this.persistentAttributeMap, persistentAttributesFromGetters, fields, getters);
-    }
+		if ( defaultClassLevelAccessType == AccessType.DEFAULT ) {
+			// this is effectively what the old code did when AccessType.DEFAULT was passed in
+			// to getProperties(AccessType) from AnnotationBinder and InheritanceState
+			defaultClassLevelAccessType = AccessType.PROPERTY;
+		}
 
-    private void preFilter(List<XProperty> fields, List<XProperty> getters) {
-        Iterator propertyIterator = fields.iterator();
+		AccessType localClassLevelAccessType = determineLocalClassDefinedAccessStrategy();
+		assert localClassLevelAccessType != null;
 
-        XProperty property;
-        while(propertyIterator.hasNext()) {
-            property = (XProperty)propertyIterator.next();
-            if (mustBeSkipped(property)) {
-                propertyIterator.remove();
-            }
-        }
+		this.classLevelAccessType = localClassLevelAccessType != AccessType.DEFAULT
+				? localClassLevelAccessType
+				: defaultClassLevelAccessType;
+		assert classLevelAccessType == AccessType.FIELD || classLevelAccessType == AccessType.PROPERTY;
 
-        propertyIterator = getters.iterator();
+		this.persistentAttributeMap = new LinkedHashMap<String, XProperty>();
 
-        while(propertyIterator.hasNext()) {
-            property = (XProperty)propertyIterator.next();
-            if (mustBeSkipped(property)) {
-                propertyIterator.remove();
-            }
-        }
+		final List<XProperty> fields = xClass.getDeclaredProperties( AccessType.FIELD.getType() );
+		final List<XProperty> getters = xClass.getDeclaredProperties( AccessType.PROPERTY.getType() );
 
-    }
+		preFilter( fields, getters );
 
-    private void collectPersistentAttributesUsingLocalAccessType(LinkedHashMap<String, XProperty> persistentAttributeMap, Map<String, XProperty> persistentAttributesFromGetters, List<XProperty> fields, List<XProperty> getters) {
-        Iterator propertyIterator = fields.iterator();
+		final Map<String,XProperty> persistentAttributesFromGetters = new HashMap<String, XProperty>();
 
-        XProperty xProperty;
-        Access localAccessAnnotation;
-        while(propertyIterator.hasNext()) {
-            xProperty = (XProperty)propertyIterator.next();
-            localAccessAnnotation = (Access)xProperty.getAnnotation(Access.class);
-            if (localAccessAnnotation != null && localAccessAnnotation.value() == javax.persistence.AccessType.FIELD) {
-                propertyIterator.remove();
-                persistentAttributeMap.put(xProperty.getName(), xProperty);
-            }
-        }
+		collectPersistentAttributesUsingLocalAccessType(
+				persistentAttributeMap,
+				persistentAttributesFromGetters,
+				fields,
+				getters
+		);
+		collectPersistentAttributesUsingClassLevelAccessType(
+				persistentAttributeMap,
+				persistentAttributesFromGetters,
+				fields,
+				getters
+		);
+	}
 
-        propertyIterator = getters.iterator();
+	private void preFilter(List<XProperty> fields, List<XProperty> getters) {
+		Iterator<XProperty> propertyIterator = fields.iterator();
+		while ( propertyIterator.hasNext() ) {
+			final XProperty property = propertyIterator.next();
+			if ( mustBeSkipped( property ) ) {
+				propertyIterator.remove();
+			}
+		}
 
-        while(propertyIterator.hasNext()) {
-            xProperty = (XProperty)propertyIterator.next();
-            localAccessAnnotation = (Access)xProperty.getAnnotation(Access.class);
-            if (localAccessAnnotation != null && localAccessAnnotation.value() == javax.persistence.AccessType.PROPERTY) {
-                propertyIterator.remove();
-                String name = xProperty.getName();
-                XProperty previous = (XProperty)persistentAttributesFromGetters.get(name);
-                if (previous != null) {
-                    throw new MappingException(LOG.ambiguousPropertyMethods(this.xClass.getName(), HCANNHelper.annotatedElementSignature(previous), HCANNHelper.annotatedElementSignature(xProperty)), new Origin(SourceType.ANNOTATION, this.xClass.getName()));
-                }
+		propertyIterator = getters.iterator();
+		while ( propertyIterator.hasNext() ) {
+			final XProperty property = propertyIterator.next();
+			if ( mustBeSkipped( property ) ) {
+				propertyIterator.remove();
+			}
+		}
+	}
 
-                persistentAttributeMap.put(name, xProperty);
-                persistentAttributesFromGetters.put(name, xProperty);
-            }
-        }
+	private void collectPersistentAttributesUsingLocalAccessType(
+			LinkedHashMap<String, XProperty> persistentAttributeMap,
+			Map<String,XProperty> persistentAttributesFromGetters,
+			List<XProperty> fields,
+			List<XProperty> getters) {
 
-    }
+		// Check fields...
+		Iterator<XProperty> propertyIterator = fields.iterator();
+		while ( propertyIterator.hasNext() ) {
+			final XProperty xProperty = propertyIterator.next();
+			final Access localAccessAnnotation = xProperty.getAnnotation( Access.class );
+			if ( localAccessAnnotation == null
+					|| localAccessAnnotation.value() != javax.persistence.AccessType.FIELD ) {
+				continue;
+			}
 
-    private void collectPersistentAttributesUsingClassLevelAccessType(LinkedHashMap<String, XProperty> persistentAttributeMap, Map<String, XProperty> persistentAttributesFromGetters, List<XProperty> fields, List<XProperty> getters) {
-        Iterator var5;
-        XProperty getter;
-        if (this.classLevelAccessType == AccessType.FIELD) {
-            var5 = fields.iterator();
+			propertyIterator.remove();
+			persistentAttributeMap.put( xProperty.getName(), xProperty );
+		}
 
-            while(var5.hasNext()) {
-                getter = (XProperty)var5.next();
-                if (!persistentAttributeMap.containsKey(getter.getName())) {
-                    persistentAttributeMap.put(getter.getName(), getter);
-                }
-            }
-        } else {
-            var5 = getters.iterator();
+		// Check getters...
+		propertyIterator = getters.iterator();
+		while ( propertyIterator.hasNext() ) {
+			final XProperty xProperty = propertyIterator.next();
+			final Access localAccessAnnotation = xProperty.getAnnotation( Access.class );
+			if ( localAccessAnnotation == null
+					|| localAccessAnnotation.value() != javax.persistence.AccessType.PROPERTY ) {
+				continue;
+			}
 
-            while(var5.hasNext()) {
-                getter = (XProperty)var5.next();
-                String name = getter.getName();
-                XProperty previous = (XProperty)persistentAttributesFromGetters.get(name);
-                if (previous != null) {
-                    throw new MappingException(LOG.ambiguousPropertyMethods(this.xClass.getName(), HCANNHelper.annotatedElementSignature(previous), HCANNHelper.annotatedElementSignature(getter)), new Origin(SourceType.ANNOTATION, this.xClass.getName()));
-                }
+			propertyIterator.remove();
 
-                if (!persistentAttributeMap.containsKey(name)) {
-                    persistentAttributeMap.put(getter.getName(), getter);
-                    persistentAttributesFromGetters.put(name, getter);
-                }
-            }
-        }
+			final String name = xProperty.getName();
 
-    }
+			// HHH-10242 detect registration of the same property getter twice - eg boolean isId() + UUID getId()
+			final XProperty previous = persistentAttributesFromGetters.get( name );
+			if ( previous != null ) {
+				throw new org.hibernate.boot.MappingException(
+						LOG.ambiguousPropertyMethods(
+								xClass.getName(),
+								HCANNHelper.annotatedElementSignature( previous ),
+								HCANNHelper.annotatedElementSignature( xProperty )
+						),
+						new Origin( SourceType.ANNOTATION, xClass.getName() )
+				);
+			}
 
-    public XClass getEntityAtStake() {
-        return this.entityAtStake;
-    }
+			persistentAttributeMap.put( name, xProperty );
+			persistentAttributesFromGetters.put( name, xProperty );
+		}
+	}
 
-    public XClass getDeclaringClass() {
-        return this.xClass;
-    }
+	private void collectPersistentAttributesUsingClassLevelAccessType(
+			LinkedHashMap<String, XProperty> persistentAttributeMap,
+			Map<String,XProperty> persistentAttributesFromGetters,
+			List<XProperty> fields,
+			List<XProperty> getters) {
+		if ( classLevelAccessType == AccessType.FIELD ) {
+			for ( XProperty field : fields ) {
+				if ( persistentAttributeMap.containsKey( field.getName() ) ) {
+					continue;
+				}
 
-    public AccessType getClassLevelAccessType() {
-        return this.classLevelAccessType;
-    }
+				persistentAttributeMap.put( field.getName(), field );
+			}
+		}
+		else {
+			for ( XProperty getter : getters ) {
+				final String name = getter.getName();
 
-    public Collection<XProperty> getProperties() {
-        this.assertTypesAreResolvable();
-        return Collections.unmodifiableCollection(this.persistentAttributeMap.values());
-    }
+				// HHH-10242 detect registration of the same property getter twice - eg boolean isId() + UUID getId()
+				final XProperty previous = persistentAttributesFromGetters.get( name );
+				if ( previous != null ) {
+					throw new org.hibernate.boot.MappingException(
+							LOG.ambiguousPropertyMethods(
+									xClass.getName(),
+									HCANNHelper.annotatedElementSignature( previous ),
+									HCANNHelper.annotatedElementSignature( getter )
+							),
+							new Origin( SourceType.ANNOTATION, xClass.getName() )
+					);
+				}
 
-    private void assertTypesAreResolvable() {
-        Iterator var1 = this.persistentAttributeMap.values().iterator();
+				if ( persistentAttributeMap.containsKey( name ) ) {
+					continue;
+				}
 
-        XProperty xProperty;
-        do {
-            if (!var1.hasNext()) {
-                return;
-            }
+				persistentAttributeMap.put( getter.getName(), getter );
+				persistentAttributesFromGetters.put( name, getter );
+			}
+		}
+	}
 
-            xProperty = (XProperty)var1.next();
-        } while(xProperty.isTypeResolved() || discoverTypeWithoutReflection(xProperty));
+	public XClass getEntityAtStake() {
+		return entityAtStake;
+	}
 
-        String msg = "Property " + StringHelper.qualify(this.xClass.getName(), xProperty.getName()) + " has an unbound type and no explicit target entity. Resolve this Generic usage issue or set an explicit target attribute (eg @OneToMany(target=) or use an explicit @Type";
-        throw new AnnotationException(msg);
-    }
+	public XClass getDeclaringClass() {
+		return xClass;
+	}
 
-    private AccessType determineLocalClassDefinedAccessStrategy() {
-        AccessType hibernateDefinedAccessType = AccessType.DEFAULT;
-        AccessType jpaDefinedAccessType = AccessType.DEFAULT;
-        org.hibernate.annotations.AccessType accessType = (org.hibernate.annotations.AccessType)this.xClass.getAnnotation(org.hibernate.annotations.AccessType.class);
-        if (accessType != null) {
-            hibernateDefinedAccessType = AccessType.getAccessStrategy(accessType.value());
-        }
+	public AccessType getClassLevelAccessType() {
+		return classLevelAccessType;
+	}
 
-        Access access = (Access)this.xClass.getAnnotation(Access.class);
-        if (access != null) {
-            jpaDefinedAccessType = AccessType.getAccessStrategy(access.value());
-        }
+	public Collection<XProperty> getProperties() {
+		assertTypesAreResolvable();
+		return Collections.unmodifiableCollection( persistentAttributeMap.values() );
+	}
 
-        if (hibernateDefinedAccessType != AccessType.DEFAULT && jpaDefinedAccessType != AccessType.DEFAULT && hibernateDefinedAccessType != jpaDefinedAccessType) {
-            throw new org.hibernate.MappingException("@AccessType and @Access specified with contradicting values. Use of @Access only is recommended. ");
-        } else {
-            AccessType classDefinedAccessType;
-            if (hibernateDefinedAccessType != AccessType.DEFAULT) {
-                classDefinedAccessType = hibernateDefinedAccessType;
-            } else {
-                classDefinedAccessType = jpaDefinedAccessType;
-            }
+	private void assertTypesAreResolvable() {
+		for ( XProperty xProperty : persistentAttributeMap.values() ) {
+			if ( !xProperty.isTypeResolved() && !discoverTypeWithoutReflection( xProperty ) ) {
+				String msg = "Property " + StringHelper.qualify( xClass.getName(), xProperty.getName() ) +
+						" has an unbound type and no explicit target entity. Resolve this Generic usage issue" +
+						" or set an explicit target attribute (eg @OneToMany(target=) or use an explicit @Type";
+				throw new AnnotationException( msg );
+			}
+		}
+	}
+//
+//	private void considerExplicitFieldAndPropertyAccess() {
+//		for ( XProperty property : fieldAccessMap.values() ) {
+//			Access access = property.getAnnotation( Access.class );
+//			if ( access == null ) {
+//				continue;
+//			}
+//
+//			// see "2.3.2 Explicit Access Type" of JPA 2 spec
+//			// the access type for this property is explicitly set to AccessType.FIELD, hence we have to
+//			// use field access for this property even if the default access type for the class is AccessType.PROPERTY
+//			AccessType accessType = AccessType.getAccessStrategy( access.value() );
+//            if (accessType == AccessType.FIELD) {
+//				propertyAccessMap.put(property.getName(), property);
+//			}
+//            else {
+//				LOG.debug( "Placing @Access(AccessType.FIELD) on a field does not have any effect." );
+//			}
+//		}
+//
+//		for ( XProperty property : propertyAccessMap.values() ) {
+//			Access access = property.getAnnotation( Access.class );
+//			if ( access == null ) {
+//				continue;
+//			}
+//
+//			AccessType accessType = AccessType.getAccessStrategy( access.value() );
+//
+//			// see "2.3.2 Explicit Access Type" of JPA 2 spec
+//			// the access type for this property is explicitly set to AccessType.PROPERTY, hence we have to
+//			// return use method access even if the default class access type is AccessType.FIELD
+//            if (accessType == AccessType.PROPERTY) {
+//				fieldAccessMap.put(property.getName(), property);
+//			}
+//            else {
+//				LOG.debug( "Placing @Access(AccessType.PROPERTY) on a field does not have any effect." );
+//			}
+//		}
+//	}
 
-            return classDefinedAccessType;
-        }
-    }
+//	/**
+//	 * Retrieves all properties from the {@code xClass} with the specified access type. This method does not take
+//	 * any jpa access rules/annotations into account yet.
+//	 *
+//	 * @param access The access type - {@code AccessType.FIELD}  or {@code AccessType.Property}
+//	 *
+//	 * @return A maps of the properties with the given access type keyed against their property name
+//	 */
+//	private TreeMap<String, XProperty> initProperties(AccessType access) {
+//		if ( !( AccessType.PROPERTY.equals( access ) || AccessType.FIELD.equals( access ) ) ) {
+//			throw new IllegalArgumentException( "Access type has to be AccessType.FIELD or AccessType.Property" );
+//		}
+//
+//		//order so that property are used in the same order when binding native query
+//		TreeMap<String, XProperty> propertiesMap = new TreeMap<String, XProperty>();
+//		List<XProperty> properties = xClass.getDeclaredProperties( access.getType() );
+//		for ( XProperty property : properties ) {
+//			if ( mustBeSkipped( property ) ) {
+//				continue;
+//			}
+//			// HHH-10242 detect registration of the same property twice eg boolean isId() + UUID getId()
+//			XProperty oldProperty = propertiesMap.get( property.getName() );
+//			if ( oldProperty != null ) {
+//				throw new org.hibernate.boot.MappingException(
+//						LOG.ambiguousPropertyMethods(
+//								xClass.getName(),
+//								HCANNHelper.annotatedElementSignature( oldProperty ),
+//								HCANNHelper.annotatedElementSignature( property )
+//						),
+//						new Origin( SourceType.ANNOTATION, xClass.getName() )
+//				);
+//			}
+//
+//			propertiesMap.put( property.getName(), property );
+//		}
+//		return propertiesMap;
+//	}
 
-    private static boolean discoverTypeWithoutReflection(XProperty p) {
-        if (p.isAnnotationPresent(OneToOne.class) && !((OneToOne)p.getAnnotation(OneToOne.class)).targetEntity().equals(Void.TYPE)) {
-            return true;
-        } else if (p.isAnnotationPresent(OneToMany.class) && !((OneToMany)p.getAnnotation(OneToMany.class)).targetEntity().equals(Void.TYPE)) {
-            return true;
-        } else if (p.isAnnotationPresent(ManyToOne.class) && !((ManyToOne)p.getAnnotation(ManyToOne.class)).targetEntity().equals(Void.TYPE)) {
-            return true;
-        } else if (p.isAnnotationPresent(ManyToMany.class) && !((ManyToMany)p.getAnnotation(ManyToMany.class)).targetEntity().equals(Void.TYPE)) {
-            return true;
-        } else if (p.isAnnotationPresent(Any.class)) {
-            return true;
-        } else if (p.isAnnotationPresent(ManyToAny.class)) {
-            if (!p.isCollection() && !p.isArray()) {
-                throw new AnnotationException("@ManyToAny used on a non collection non array property: " + p.getName());
-            } else {
-                return true;
-            }
-        } else if (p.isAnnotationPresent(Type.class)) {
-            return true;
-        } else {
-            return p.isAnnotationPresent(Target.class);
-        }
-    }
+	private AccessType determineLocalClassDefinedAccessStrategy() {
+		AccessType classDefinedAccessType;
 
-    private static boolean mustBeSkipped(XProperty property) {
-        return property.isAnnotationPresent(Transient.class) || "net.sf.cglib.transform.impl.InterceptFieldCallback".equals(property.getType().getName()) || "org.hibernate.bytecode.internal.javassist.FieldHandler".equals(property.getType().getName());
-    }
+		AccessType hibernateDefinedAccessType = AccessType.DEFAULT;
+		AccessType jpaDefinedAccessType = AccessType.DEFAULT;
+
+		org.hibernate.annotations.AccessType accessType = xClass.getAnnotation( org.hibernate.annotations.AccessType.class );
+		if ( accessType != null ) {
+			hibernateDefinedAccessType = AccessType.getAccessStrategy( accessType.value() );
+		}
+
+		Access access = xClass.getAnnotation( Access.class );
+		if ( access != null ) {
+			jpaDefinedAccessType = AccessType.getAccessStrategy( access.value() );
+		}
+
+		if ( hibernateDefinedAccessType != AccessType.DEFAULT
+				&& jpaDefinedAccessType != AccessType.DEFAULT
+				&& hibernateDefinedAccessType != jpaDefinedAccessType ) {
+			throw new MappingException(
+					"@AccessType and @Access specified with contradicting values. Use of @Access only is recommended. "
+			);
+		}
+
+		if ( hibernateDefinedAccessType != AccessType.DEFAULT ) {
+			classDefinedAccessType = hibernateDefinedAccessType;
+		}
+		else {
+			classDefinedAccessType = jpaDefinedAccessType;
+		}
+		return classDefinedAccessType;
+	}
+
+	private static boolean discoverTypeWithoutReflection(XProperty p) {
+		if ( p.isAnnotationPresent( OneToOne.class ) && !p.getAnnotation( OneToOne.class )
+				.targetEntity()
+				.equals( void.class ) ) {
+			return true;
+		}
+		else if ( p.isAnnotationPresent( OneToMany.class ) && !p.getAnnotation( OneToMany.class )
+				.targetEntity()
+				.equals( void.class ) ) {
+			return true;
+		}
+		else if ( p.isAnnotationPresent( ManyToOne.class ) && !p.getAnnotation( ManyToOne.class )
+				.targetEntity()
+				.equals( void.class ) ) {
+			return true;
+		}
+		else if ( p.isAnnotationPresent( ManyToMany.class ) && !p.getAnnotation( ManyToMany.class )
+				.targetEntity()
+				.equals( void.class ) ) {
+			return true;
+		}
+		else if ( p.isAnnotationPresent( org.hibernate.annotations.Any.class ) ) {
+			return true;
+		}
+		else if ( p.isAnnotationPresent( ManyToAny.class ) ) {
+			if ( !p.isCollection() && !p.isArray() ) {
+				throw new AnnotationException( "@ManyToAny used on a non collection non array property: " + p.getName() );
+			}
+			return true;
+		}
+		else if ( p.isAnnotationPresent( Type.class ) ) {
+			return true;
+		}
+		else if ( p.isAnnotationPresent( Target.class ) ) {
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean mustBeSkipped(XProperty property) {
+		//TODO make those hardcoded tests more portable (through the bytecode provider?)
+		return property.isAnnotationPresent( Transient.class )
+				|| "net.sf.cglib.transform.impl.InterceptFieldCallback".equals( property.getType().getName() )
+				|| "org.hibernate.bytecode.internal.javassist.FieldHandler".equals( property.getType().getName() );
+	}
 }
