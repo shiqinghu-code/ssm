@@ -19,13 +19,20 @@ spring:
     database: MYSQL
     hibernate:
           ddl-auto: update
+  redis: 
+     host: 127.0.0.1
+     port: 6379
+     password: 
+     max-active: 8
+     max-wait: -1
+     max-idle: 8
+     min-idle: 0
+     timeout: 30000
 mybatis:
   config-location: classpath:mybatis/mybatis.cfg.xml        # mybatis配置文件所在路径
   mapper-locations: classpath:mybatis/mapper/**/*.xml
 logging:
   config: classpath:logback.xml
-
-
 
   
   
