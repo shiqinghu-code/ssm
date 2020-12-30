@@ -28,10 +28,10 @@ public class EctCnSysLogManager implements IEctCnSysLogManager {
 		// TODO Auto-generated method stub
 		Map<String, Object> resultMap = new HashMap<String, Object>();
 		
-		List<EctCnSysLog> list=logService.queryAll(id);
+		 EctCnSysLog  list=logService.findById(id);
 		resultMap.put("result", list);
 		
-		if(list!=null&&list.size()>0) {
+		if(list!=null) {
 			return Result.success(list);
 		}else {
 			return Result.noResult("数据为空");

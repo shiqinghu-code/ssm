@@ -37,7 +37,7 @@
 	</properties>
 
 	<dependencies>
-        		<!-- 微服务jar -->
+        		<!-- 微服务jar
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
@@ -46,7 +46,7 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
-		
+		 -->
 		<dependency>
 			<groupId>org.yaml</groupId>
 			<artifactId>snakeyaml</artifactId>
@@ -306,13 +306,12 @@
 			<artifactId>spring-boot-starter-data-redis</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>redis.clients</groupId>
-			<artifactId>jedis</artifactId>
-		</dependency>
-		
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
 		<!-- 依赖在此上面加 -->
 	</dependencies>
-	<!-- 微服务jar-->
+	<!-- 微服务jar
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -324,6 +323,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	-->
 	<build>
 		<plugins>
 			<plugin>

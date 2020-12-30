@@ -1,31 +1,44 @@
 package com.qing.hu.service.base.impl;
 
+import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.List;
 
 import javax.transaction.Transactional;
 
+import org.apache.ibatis.exceptions.TooManyResultsException;
+import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.qing.hu.entity.EctCnSysLog;
+import com.qing.hu.controller.EctCnSysLogController;
 import com.qing.hu.entity.base.BaseEntity;
 import com.qing.hu.mapper.base.BaseMapper;
+import com.qing.hu.redis.RedisUtils;
 import com.qing.hu.service.ILogService;
 import com.qing.hu.service.base.IBaseService;
 
+import lombok.extern.slf4j.Slf4j;
+import tk.mybatis.mapper.entity.Condition;
 import tk.mybatis.mapper.entity.Example;
 
 /**
  * @Description: 服务层基类实现类
  * 注：自定义需要保存对象日志的操作方法（insert，update，delete操作必须记录日志！）
  */
+@Slf4j
 public abstract class BaseService<T extends BaseEntity , ID, EXAMPLE> implements IBaseService<T, ID, EXAMPLE>{
 
  
 	    @Autowired
 	     private ILogService logService;
+	    
+	    @Autowired
+	     private RedisUtils redisUtils;
+	    
+
+	    private Class<T> modelClass;    // 当前泛型真实类型的Class
 	    
 		// 定义抽象方法getBaseMapper获取当前实体Mapper对象
 	    protected abstract BaseMapper<T> getBaseMapper();
@@ -145,6 +158,53 @@ public abstract class BaseService<T extends BaseEntity , ID, EXAMPLE> implements
 			PageInfo<T> pageInfo = new PageInfo<T>(list);
 		    return pageInfo;
 		}
+	    
+	 
+	   
+	        @Override
+	        public T findById(ID id) {
+	        	
+	        	if(redisUtils.hasKey((String)id)) {
+	        		log.info("---------------------->>>>>>从缓存获取数据" );
+	        		return (T) redisUtils.get((String)id);
+	        	}else {
+	        		T t=getBaseMapper().selectByPrimaryKey(id);
+	        		redisUtils.set((String)id, t,30L);
+	        		log.info("---------------------->>>>>> 数据加入缓存" );
+	        		return t;
+	        	}
+	        }
+	     
+	        @Override
+	        public T findBy(String fieldName, Object value) throws TooManyResultsException {
+	            try {
+	                T model = modelClass.newInstance();
+	                Field field = modelClass.getDeclaredField(fieldName);
+	                field.setAccessible(true);
+	                field.set(model, value);
+	                return getBaseMapper().selectOne(model);
+	            } catch (ReflectiveOperationException e) {
+	                throw new ServiceException(e.getMessage(), e);
+	            }
+	        }
+	     
+	        @Override
+	        public List<T> findByIds(String ids) {
+	            return getBaseMapper().selectByIds(ids);
+	        }
+	     
+	        @Override
+	        public List<T> findByCondition(Condition condition) {
+	            return getBaseMapper().selectByCondition(condition);
+	        }
+	     
+	        @Override
+	        public List<T> findAll() {
+	            System.out.println(getBaseMapper());
+	            return getBaseMapper().selectAll();
+	        }
+	  
+	    
 	    
 	}
 
