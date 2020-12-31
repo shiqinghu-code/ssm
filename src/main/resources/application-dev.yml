@@ -35,7 +35,22 @@ spring:
           max-idle: 8
           #最小空闲
           min-idle: 1
-     
+#  kafka:     # 指定kafka 代理地址，可以多个
+#      bootstrap-servers: localhost:9092
+#      template:    # 指定默认topic id
+#        default-topic: producer
+#      listener:   # 指定listener 容器中的线程数，用于提高并发量
+#        concurrency: 5
+#        missing-topics-fatal: false
+#      consumer:
+#        group-id: myGroup # 指定默认消费者group id
+#        client-id: 200
+#        max-poll-records: 200
+#        auto-offset-reset: earliest # 最早未被消费的offset
+#      producer:
+#        batch-size: 1000 # 每次批量发送消息的数量
+#        retries: 3
+#        client-id: 200    
 mybatis:
   config-location: classpath:mybatis/mybatis.cfg.xml        # mybatis配置文件所在路径
   mapper-locations: classpath:mybatis/mapper/**/*.xml

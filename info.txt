@@ -1,9 +1,4 @@
 
-http://localhost:9082/ectCnSysLogController/seeLog?id=1
-
-http://localhost:9082/swagger-ui.html
-
-http://localhost:9082/ectCnSysLogController/seeLogPage?id=1&pageNum=1&pageSize=2
 
 
 数据库
@@ -25,7 +20,7 @@ TK Mybaits
 
 
 
-树形数据？
+树形数据
 文件处理？
 
 lombok
@@ -37,13 +32,13 @@ lombok
 docker部署
 
 
-https://blog.csdn.net/ming19951224/article/details/106173840
+
 
 mybatis-plus
 
 拦截器与过滤器 AOP
 
-设计模式 https://www.cnblogs.com/bhlsheji/p/4581464.html
+设计模式
 
 Spring的两大特征（IOC和AOP）
 
@@ -54,7 +49,9 @@ Spring的两大特征（IOC和AOP）
 工作流
 登录
 
-
+negix反向代理
+fastDFS
+fc-san
 
 
 

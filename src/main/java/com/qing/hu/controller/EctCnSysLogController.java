@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.qing.hu.common.Result;
+import com.qing.hu.kafka.Producer;
 import com.qing.hu.manager.IEctCnSysLogManager;
+import com.qing.hu.util.SpringUtil;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
