@@ -8,7 +8,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.qing.hu.entity.EctCnSysLog;
-import com.qing.hu.kafka.Producer;
 import com.qing.hu.redis.RedisUtilsStatic;
 import com.qing.hu.service.IEctCnAccountPowerLogService;
 import com.qing.hu.util.SpringUtil;
@@ -35,8 +34,7 @@ public class AppTest{
 	 }
 	 @Test
 	 public  void testApp2() { 
-		 Producer producer =SpringUtil.getBean("producer",Producer.class);
-		 producer.sendChannelMess("test12", "消息2222");
-		 
+		 //Producer producer =SpringUtil.getBean("producer",Producer.class);
+		 //producer.sendChannelMess("test12", "消息2222");
 	 }
 }
