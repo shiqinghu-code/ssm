@@ -21,14 +21,14 @@ TK Mybaits
 
 
 树形数据
-文件处理？
+文件处理
 
 lombok
 
 ???
 全局异常处理
 日志kafka
-模拟postman调用接口
+
 docker部署
 
 
@@ -53,6 +53,6 @@ negix反向代理
 fastDFS
 fc-san
 
-
-
+activiti
+shiro
 
