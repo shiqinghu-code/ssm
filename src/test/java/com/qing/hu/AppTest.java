@@ -10,7 +10,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.qing.hu.entity.EctCnSysLog;
 import com.qing.hu.redis.RedisUtilsStatic;
 import com.qing.hu.service.IEctCnAccountPowerLogService;
-import com.qing.hu.util.SpringUtil;
 
 
 
@@ -18,7 +17,7 @@ import com.qing.hu.util.SpringUtil;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {App.class})
+@SpringBootTest(classes = {SSMApp.class})
 public class AppTest{ 
 	@Resource
 	IEctCnAccountPowerLogService ectCnAccountPowerLogService;
