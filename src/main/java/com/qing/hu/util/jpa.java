@@ -53,13 +53,13 @@ public class jpa {
         commonColumns.add("INS_USER_ID");
         commonColumns.add("DEL_FLG");
 
-        File file = new File("src\\main\\resources\\db\\mydb.xls");
+        File file = new File("src\\main\\resources\\db\\sysdb.xls");
         InputStream stream = new FileInputStream(file);
         xssfWorkbook = new HSSFWorkbook(stream);
         System.out.println(xssfWorkbook.getNumberOfSheets());
         int numOfSheets = xssfWorkbook.getNumberOfSheets();
         for (int i = 0; i < numOfSheets; i++) {
-            //if (xssfWorkbook.getSheetAt(i).getSheetName().equals("ECT_CN_ACCOUNT_POWER_LOG")) {
+           // if (xssfWorkbook.getSheetAt(i).getSheetName().equals("SYS_USER")) {
                 write(i);
             //}
         }
@@ -78,17 +78,17 @@ public class jpa {
         writeMapper();
         writeIService();
         writeServiceImpl();
-        writeRepository();
+        //writeRepository();
         writeController();
     }
 
     private static void writeController() throws IOException {
         data = new StringBuilder();
-        String repositoryName = Character.toLowerCase(className.charAt(0)) + className.substring(1) + "Repository";
+        String serviceName = Character.toLowerCase(className.charAt(0)) + className.substring(1) + "Service";
         data.append("package com.qing.hu.controller;\n" +
                 "\n" +
                 "import com.qing.hu.entity." + className + ";\n" +
-                "import com.qing.hu.repository." + className + "Repository;\n" +
+                "import com.qing.hu.service.I" + className + "Service;\n" +
                 "import org.springframework.beans.factory.annotation.Autowired;\n" +
                 "import org.springframework.web.bind.annotation.RequestMapping;\n" +
                 "import org.springframework.web.bind.annotation.RequestMethod;\n" +
@@ -102,11 +102,11 @@ public class jpa {
                 "@RequestMapping(\"/" + classNameForUrl + "\")\n" +
                 "public class " + className + "Controller {\n" +
                 "    @Autowired\n" +
-                "    " + className + "Repository " + repositoryName + ";\n" +
+                "    I" + className + "Service " + serviceName + ";\n" +
                 "\n" +
                 "    @RequestMapping(value = \"/getall\", method = RequestMethod.GET)\n" +
                 "    public List<" + className + "> get" + className + "List() {\n" +
-                "        return " + repositoryName + ".findAll();\n" +
+                "        return " + serviceName + ".findAll();\n" +
                 "    }\n" +
                 "}");
         File file = new File("src\\main\\java\\com\\qing\\hu\\controller\\" + className + "Controller.java");
@@ -191,7 +191,7 @@ public class jpa {
                 continue;
             }
             Cell cell = row.getCell(0);
-            if (cell.getCellType() !=  CellType.NUMERIC) {
+            if (cell==null || cell.getCellType() !=  CellType.NUMERIC) {
                 continue;
             }
             cell = row.getCell(1);

@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.qing.hu.controller.EctCnSysLogController;
 import com.qing.hu.entity.base.BaseEntity;
 import com.qing.hu.mapper.base.BaseMapper;
 import com.qing.hu.redis.RedisUtils;
